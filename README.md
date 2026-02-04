@@ -6,22 +6,80 @@ This repository contains specialized skills and tools for the Gemini Agent, focu
 
 ### Google Agent Development Kit (ADK) Cheatsheet
 Located in `skills/adk_cheatsheet/`.
-This skill provides a comprehensive reference for building, orchestrating, and deploying AI agents using the Google ADK.
+This "Hard Skill" provides a Model Context Protocol (MCP) server that gives the agent granular access to the Google Agent Development Kit (ADK) Python Cheatsheet. It allows the agent to search for specific syntax, examples, and patterns without needing to load the entire documentation into context.
 
-**Features:**
-- **Lookup Tool**: Search for specific ADK concepts (e.g., `LlmAgent`, `Callbacks`).
-- **Table of Contents**: Navigate the cheatsheet topics.
+## Deployment & Usage
 
-## Usage
+### 1. Deploying Your Skills Server (Local Host)
+To use this server, you must treat it as a local "tool host" that clients connect to.
 
-These skills are designed to be used as Model Context Protocol (MCP) servers.
+*   **Command**: `/Users/laah/Code/Skills/.venv/bin/python /Users/laah/Code/Skills/skills/adk_cheatsheet/server.py`
+*   **Verification**: Run the command in your terminal. It should start and wait for JSON-RPC connections (no output indicates it is ready/listening).
 
-### Running the ADK Cheatsheet Server
+### 2. Integration with Google Gemini CLI
 
+**Installation & Auth**
 ```bash
-pip install -r requirements.txt
-python skills/adk_cheatsheet/server.py
+npm install -g @google/gemini-cli
+gemini auth login
 ```
+
+**Configure the MCP Connection**
+Add your skills server to `~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "adk-cheatsheet": {
+      "command": "python",
+      "args": [
+        "/Users/laah/Code/Skills/skills/adk_cheatsheet/server.py"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+**Verification**
+```bash
+gemini mcp list
+```
+
+### 3. Integration with Google Antigravity
+
+**Option A: UI Method**
+1.  Open Agent Side Panel > Additional Options (...) > **"Manage MCP Servers"**.
+2.  Add Server:
+    *   **Name**: ADK Cheatsheet
+    *   **Command**: `python`
+    *   **Arguments**: `/Users/laah/Code/Skills/skills/adk_cheatsheet/server.py`
+
+**Option B: Config File Method**
+Create `.antigravity/mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "adk-cheatsheet": {
+      "command": "python",
+      "args": ["/Users/laah/Code/Skills/skills/adk_cheatsheet/server.py"],
+      "alwaysAllow": ["adk_lookup", "adk_list_table_of_contents"]
+    }
+  }
+}
+```
+
+## Tool Usage
+
+### `adk_lookup`
+Searches the cheatsheet for information on a specific topic.
+*   `adk_lookup(query="Callbacks")` -> Returns details on callback usage.
+
+### `adk_list_table_of_contents`
+Returns the structure of the documentation.
 
 ## License
 
